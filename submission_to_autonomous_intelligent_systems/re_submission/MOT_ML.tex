@@ -487,29 +487,35 @@ Our \ac{SPENT} model reduces the RMSE by more than half to 0.029 using the ident
 
 For the association of sensor objects to existing tracks, we developed \ac{SANT} to replace classical methods like \ac{GNN}. By substituting the distance metric and the Hungarian assignment procedure with a learned, data-driven assignment logic, \ac{SANT} achieves an accuracy of 95\% on a testing dataset with 391 samples (representing 5\% of the total dataset with 7827 association samples). This approach not only simplifies the assignment process but also allows for adaptability in diverse scenarios, where classical methods may lack flexibility.
 
-\begin{table}[b]
-    \centering
-    \caption{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}
-    \resizebox{0.48\textwidth}{!}{
-    \begin{tabular}{|p{0.1\textwidth}|p{0.1\textwidth}|p{0.1\textwidth}|}
-        \hline
-        \textbf{--} & \multicolumn{2}{c|}{\textbf{Simultaneous tracks per timestamp}} \\
-        \textbf{ } & \textbf{1 to 6} & \textbf{7 to 16} \\
-        \hline
-        \hline
-        \textbf{Model} & \multicolumn{2}{c|}{\textbf{Association accuracy}} \\
-        \hline
-        \ac{SANT} & 95\% & 95\% \\
-        \hline
-        \ac{MANTa} & 95\% & 14\% \\
-        \hline
-    \end{tabular}
-    }
-    \label{tab::SANTMANTaAccuracy}
-\end{table}
+% \begin{table}[b]
+%     \centering
+%     \caption{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}
+%     \resizebox{0.48\textwidth}{!}{
+%     \begin{tabular}{|p{0.1\textwidth}|p{0.1\textwidth}|p{0.1\textwidth}|}
+%         \hline
+%         \textbf{--} & \multicolumn{2}{c|}{\textbf{Simultaneous tracks per timestamp}} \\
+%         \textbf{ } & \textbf{1 to 6} & \textbf{7 to 16} \\
+%         \hline
+%         \hline
+%         \textbf{Model} & \multicolumn{2}{c|}{\textbf{Association accuracy}} \\
+%         \hline
+%         \ac{SANT} & 95\% & 95\% \\
+%         \hline
+%         \ac{MANTa} & 95\% & 14\% \\
+%         \hline
+%     \end{tabular}
+%     }
+%     \label{tab::SANTMANTaAccuracy}
+% \end{table}
+
+\begin{figure}[t]
+	\centerline{\includegraphics[width=0.9\linewidth]{data_association_results.pdf}}
+    \caption{\red{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}}
+    \label{fig::SANTMANTaAccuracy}
+\end{figure}
 
 Expanding on \ac{SANT}, \ac{MANTa} addresses the limitations of a single object to track assignment by enabling multi object assignments within each timestamp.
-This means \ac{MANTa} is trained to assign a list of \acp{SO} to a list of tracks in a single operational step on the same dataset as \ac{SANT} and also achieved an assignment accuracy of 95\% for the six most frequently occurring association sets, i.e., the sets with one to six tracks per timestamp. It performs much worse (14\%) for assignment scenarios with more tracks, which were less present in the training data. Accuracy results are summarized in Table \ref{tab::SANTMANTaAccuracy}.
+This means \ac{MANTa} is trained to assign a list of \acp{SO} to a list of tracks in a single operational step on the same dataset as \ac{SANT} and also achieved an assignment accuracy of 95\% for the six most frequently occurring association sets, i.e., the sets with one to six tracks per timestamp. It performs much worse (14\%) for assignment scenarios with more tracks, which were less present in the training data. Accuracy results are summarized in Fig. \ref{fig::SANTMANTaAccuracy}.
 
 In the context of the entire KITTI dataset, which includes both cars and vans objects,
 MANTa achieves an average association accuracy of 80\%.
