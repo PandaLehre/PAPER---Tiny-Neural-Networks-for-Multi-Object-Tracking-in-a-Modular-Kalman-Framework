@@ -334,7 +334,7 @@ During training, the cost function is evaluated for one mini-batch with several 
 It is calculated as half the mean-square-error of the predictions added up for each timestamp, normalized over all timestamps.
 The factor of $\frac{1}{2}$ simplifies the gradient during backpropagation:
 \begin{equation}
-	cost = -\frac{1}{2}\frac{1}{N} \sum_{t=1}^{N}\frac{1}{k}\sum_{i=1}^{k}{({Z_{t,i}}-{{X}_{t,i}})}^2,
+	\red{cost = \frac{1}{2}\frac{1}{N} \sum_{t=1}^{N}\frac{1}{k}\sum_{i=1}^{k}{({Z_{t,i}}-{{X}_{t,i}})}^2},
 \end{equation}
 \noindent
 \red{where $Z_{t,i}$ refers} to the $i$-th entry in the state vector at timestamp $t$.
@@ -428,18 +428,19 @@ Additionally, a new \ac{SO} was detected, leading to a total of eight sensor obj
 The \ac{GT} assignment of the first sensor object is shown in the one-hot vector at the bottom of Fig. {\ref{pic::MantaData}}.
 The assignment output can be \red{thought of as a matrix} with dimensions maximum number of tracks $T_{\max}=16$ and the number of possible assignment classes $C=18$,
 \red{where} each field can either be zero (no assignment) or one (assignment).
-For numerical reasons, we unfold this matrix to a one-hot vector of dimension $O_{\max}=288=16 \cdot 18$.
+For numerical reasons, we unfold this matrix to a \red{vector of dimension $O_{\max}=288=16 \cdot 18$ with entries being 0 or 1}.
 The assignment classes result from the described index class 1 to 16 and additional degrees of freedom.
 One degree of freedom of the assignment represents the case that no measurement exists, another that the measurement should not be assigned.
 
 As for SANT, the cross-entropy cost function calculates the cross-entropy loss between network predictions $\hat{y}_{i,j}$ and target values \red{$y_{i,j}$} for the unique assignment task for mutually exclusive classes.
-The already introduced one-hot vector is used to represent the class in binary form in a vector and thus generate a 1-to-$O_{\max}$ code.
+\red{The introduced $O_{\max}=288$-dimensional vector} is used to represent the class in binary form in a vector.
+% MD: Before this sentence ended with " and thus generate a 1-to-$O_{\max}$ code". I took this out. @Christian Plase check.
 The following formula is used to calculate the cross-entropy loss values for each timestamp $t$:
 \begin{equation}
-    loss_t = - \sum_{i=1}^{T_{\max}} \sum_{j=1}^{C} \left[ y_{i,j} \ln(\hat{y}_{i,j}) + (1 - y_{i,j}) \ln(1 - \hat{y}_{i,j}) \right].
+    loss_t = - \sum_{i=1}^{T_{\max}}  \sum_{j=1}^{C} \left[ y_{i,j} \ln(\hat{y}_{i,j}) + (1 - y_{i,j}) \ln(1 - \hat{y}_{i,j}) \right].
 \end{equation}
 \noindent
-\red{Then, all scalars} obtained per timestamp are summarized and divided by the number of samples $N$ of a minibatch for the cost function:
+\red{Note that the elements of the one-hot vectors $\hat{y}_{i, j} \in \{0,1\}$ denote if track $i$ is associated to \ac{SO} $j $. Then, all scalars} obtained per timestamp are summarized and divided by the number of samples $N$ of a minibatch for the cost function:
 \begin{equation}
     cost = \frac{1}{N} \sum_{t=1}^{N} loss_t.
 \end{equation}
@@ -471,7 +472,7 @@ The developed networks were modularly integrated into the Tracking-by-Detection 
 
 
 \begin{figure}[t!]
-	\centerline{\includegraphics[width=0.9\linewidth]{spent_rmse.pdf}}
+	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
     \caption{\red{Comparison of the \ac{RMSE} for \ac{SPENT} and a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}.}}
     \label{fig::SpentRmseComparison}
 \end{figure}
@@ -509,7 +510,7 @@ For the association of sensor objects to existing tracks, we developed \ac{SANT}
 % \end{table}
 
 \begin{figure}[t]
-	\centerline{\includegraphics[width=0.9\linewidth]{data_association_results.pdf}}
+	\centerline{\includegraphics[width=0.87\linewidth]{data_association_results.pdf}}
     \caption{\red{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}}
     \label{fig::SANTMANTaAccuracy}
 \end{figure}
