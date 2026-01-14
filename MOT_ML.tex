@@ -167,7 +167,7 @@ Our evaluation, conducted on the public KITTI tracking dataset, demonstrates sig
 \begin{figure}[!ht]
 	\centerline{\includegraphics[width=0.95\linewidth]{figs/MOT_Framework_Integration_SPENT_SANT.png}}
 	\caption{
-This schematic representation shows the integration of two \acp{NN} (highlighted in dark blue) within a TbD framework.
+This schematic representation shows the integration of two \acp{NN} (highlighted in dark blue) within a \ac{TbD} framework.
 The "Association network" can be implemented using either \ac{SANT} or \ac{MANTa}. It works in tandem with the prediction network \ac{SPENT}, which takes tracked objects ${T^c}_{t,1:n}$ and predicts them to the next timestamp as $X_{t,1:n}$. The predicted objects are then associated with sensor observations $Z_{t,1:m}$ by \ac{SANT} or \ac{MANTa}.
 }
 	\label{pic::MotFramework}
@@ -227,7 +227,7 @@ In this work, we introduce a novel \ac{MOT} approach that leverages \ac{ML} to o
 We specifically focus on the development and implementation of \acp{NN}, which can enable more precise and flexible data-driven object state predictions.
 
 \subsection{Association of sensor objects to tracks}
-Another key challenge for TbD trackers is data association.
+Another key challenge for \ac{TbD} trackers is data association.
 The widely used \ac{GNN} algorithm, often implemented via the \ac{HA} {\cite{DA_hungarian.1955}}, assigns detections to tracks by minimizing a distance metric.
 However, it only considers current observations, ignoring temporal continuity and motion patterns, which can lead to errors in complex scenarios such as crossing objects or noisy sensor data.
 While methods like the \ac{JPDA} {\cite{DA_JPDA.1993}} evaluate the likelihood of all possible assignments, they are computationally expensive.
@@ -248,7 +248,7 @@ Our \ac{ML} models are integrated into a \ac{KF}-based tracking system, widely u
 
 \paragraph{Recurrent Neural Network-based Tracker}
 Similar to our methodologies, RNN-based approaches for online multi-target tracking have been introduced in~{\cite{DL_RNN_mot.2016,DL_RNN_data_association.2019,DL_RNN_data_association.2020,liu2020deepmtt}}.
-Specifically, the work by Mertz et al. {\cite{DL_RNN_data_association.2019}} focuses on data association within a TbD framework.
+Specifically, the work by Mertz et al. {\cite{DL_RNN_data_association.2019}} focuses on data association within a \ac{TbD} framework.
 Their proposed DeepDA model, a Long Short-Term Memory (LSTM)-based Deep Data Association (DeepDA) Network, is designed to learn and execute the task of associating objects across frames.
 This model's ability to discern association patterns directly from data enables a robust and reliable tracking outcome, even in environments with significant disturbances.
 Mertz et al. employ a distance matrix, derived from the euclidean distance measure, as the input for the DeepDA network.
@@ -356,10 +356,10 @@ We note, however, that genuine hand-labelled \ac{GT} data for this specific asso
 The input to \ac{SANT} consists of a single sensor object and a set of tracks (see top part of Fig. \ref{pic::SantArch}).
 The output is a one-hot vector encoding the association of the incoming \ac{SO} to one of the tracks, or to none.
 To generate the synthetic \ac{GT}, we take a set of tracks, then randomly choose one of them and take the next state vector at the next timestamp of that single track as the incoming new \ac{SO}. %MD: Wenn wir das noch einen Timestamp nach vorne predicten, dann haben die anderen Objekte und das rausgesuchte zum SO erklärte ja nicht mehr den gleichen timestamp. Wie kann das sein?
-The association result can be extracted from the corresponding track that it was taken out of.
-To simulate more realistic sensor data, artificial noise was introduced.
-This process was designed to reflect the inherent inaccuracies and uncertainties present in real-world sensor measurements.
-To achieve this, we add noise to the state vector of the incoming \ac{SO}s with a maximum of 3\%.
+To simulate measurement uncertainty while preserving a controlled training setup, we perturb the ground-truth sensor object states with additive noise. Specifically, we apply zero-mean, independent Gaussian noise to each state component of the incoming sensor objects.
+The noise magnitude is defined relative to the respective state value, with a maximum standard deviation of 3\% per dimension. This results in a scaled white Gaussian noise model that reflects typical relative inaccuracies observed in automotive perception systems, while avoiding unrealistic absolute perturbations for small state values.
+
+The noise is applied independently per time step and per state dimension, assuming no temporal correlation and no cross-correlation between state variables. This design choice deliberately abstracts from detailed sensor-specific error models in favor of a lightweight and reproducible uncertainty approximation suitable for data-driven association learning.
 As shown in Fig. {\ref{pic::SantArch}} the data format was created accordingly to enable index-based track assignment for \ac{SANT}.
 The actual number of tracks can vary between 0 and a maximum of $n=16$ objects, as is given by the KITTI dataset using our selected objects (cars and vans) {\cite{Geiger2012CVPR}}.
 The size of the input matrix therefore corresponds to $k \times (n + 1)$, where $k = 5$ is the number of state values for our work.
@@ -463,11 +463,33 @@ This means that a single assignment can be realized for each track.
 The vectors 1 to $T_{\max}$ are linked together in the Concatenation layer.
 This creates a vector with 288 elements, whereby 18 elements each represent the most probable assignment of a \ac{SO} to a track.
 
+To summarize the operational flow of the proposed \ac{TbD} framework and to support reproducibility, table {\ref{tab::pseudoalgo}} provides a concise pseudo-code representation of the overall tracking cycle integrating \ac{SPENT}, \ac{SANT}, and \ac{MANTa}.
+
+\begin{table}[h]
+    \caption{Tracking-by-Detection Cycle with SPENT, SANT, and MANTa}
+    \begin{algorithmic}[1]
+        \REQUIRE Tracks ${T}_{t,1:n}$, sensor objects ${Z}_{t,1:m}$
+        \ENSURE Confirmed tracks ${T^c}_{t,1:n}$
+        \STATE Predict all track states ${X}_{t,1:n}$ using SPENT
+            \IF{SANT is used}
+                \STATE Iteratively associate sensor objects ${Z}_{t,1:m}$ to confirmed tracks ${T^c}_{t,1:n}$ to receive ${A}_{t,1:m}$
+            \ELSIF{MANTa is used}
+                \STATE Jointly associate sensor objects ${Z}_{t,1:m}$ to confirmed tracks ${T^c}_{t,1:n}$ to receive ${A}_{t,1:m}$
+            \ENDIF
+        \STATE Update associated tracks ${T^u}_{t,1:n}$
+        \STATE Perform track confirmation and deletion
+        \RETURN ${T^u}_{t,1:n}$
+    \end{algorithmic}
+    \label{tab::pseudoalgo}
+\end{table}
+
+The pseudo-code explicitly distinguishes between iterative single-measurement association with \ac{SANT} and joint multi-measurement association with \ac{MANTa}, reflecting the framework-level selection strategy already described conceptually in Fig. {\ref{pic::MotFramework}}.
+
 \section{Experimental Evaluation}
-The developed networks were modularly integrated into the Tracking-by-Detection framework, replacing classical algorithms.
+The developed networks were modularly integrated into the \ac{TbD} framework, replacing classical algorithms.
 \ac{SPENT} substitutes the state predictions of the Kalman Filter by directly estimating predictions per timestamp, eliminating the need for a predefined dynamics model.
 
-\begin{table}[t!]
+\begin{table}[ht!]
     \centering
     \resizebox{0.48\textwidth}{!}{
     \begin{tabular}{|l|c|c|c|}
@@ -545,7 +567,8 @@ The primary advantage of \ac{MANTa} over \ac{SANT} is its ability to assign mult
 \section{Conclusion and Future Work}
 In this paper, we introduced machine learning methodologies that enhance \ac{MOT} for \ac{ADAS} at the object list level. We designed, trained and evaluated three novel \ac{NN}s: (i) SPENT for the prediction of tracked objects, (ii) SANT for the association of one new \ac{SO} to a list of tracks and (iii) MANTa for the association of multiple SOs to a list of tracked objects. All networks were developed for real-time embedded applications with none having more than 50k trainable parameters.
 Our approach leaves the general structure of a \ac{KF} framework intact, preserving modularity, interpretability and the ability to test each component separately. This work lays a foundation for future \ac{ADAS} research, highlighting the potential of data-driven software development in overcoming the limitations of classical algorithms, which in practice often need to include heuristics.
-Future research topics will include: (a) testing of the models on other datasets, to evaluate their generalization capabilities, (b) the quantification of uncertainties to improve decision making and (c) the investigation of multitasking networks to optimize the context-dependent tracking of multiple objects.
+
+Future research topics will include: (a) while the experimental evaluation is conducted on the KITTI dataset, which is a standard benchmark for automotive \ac{MOT}, future work will extend the validation to additional datasets to further assess transferability across different sensor configurations and traffic scenarios, (b) the quantification of uncertainties to improve decision making and (c) the investigation of multitasking networks to optimize the context-dependent tracking of multiple objects.
 
 \section*{Acknowledgments}
 We would like to express our sincere thanks to the organizations that provided financial support for this research project, namely the Daimler Truck AG and the Baden-Württemberg Cooperative State University (DHBW) Stuttgart.
