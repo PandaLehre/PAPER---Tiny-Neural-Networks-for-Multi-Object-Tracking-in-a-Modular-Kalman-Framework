@@ -268,7 +268,7 @@ This ensures the network receives tracks with sufficient timestamps, a common pr
 The track lengths \red{vary} from a minimum of 4 frames to a maximum of 643 frames (Sequence 20, ID 12).
 
 
-\begin{figure}[h!]
+\begin{figure}[b!]
 	\centerline{\includegraphics[width=0.91\linewidth]{padding2.png}}
     \caption{Analysis of sequence padding: unsorted vs. sorted data. This figure illustrates the impact of sequence padding on LSTM training based on the sorting of input data. The upper panel shows that unsorted data requires extensive padding to equalize batch sequence lengths, increasing computational overhead. In contrast, the lower panel demonstrates that sorting data by length before batching significantly reduces the necessary padding.}
 	\label{pic::Padding}
@@ -296,7 +296,7 @@ As noted by Reddy et al. {\cite{DL_padding.2019}}, padding introduces noise, but
 As depicted in Fig. \ref{pic::SpentArch}, the schematic illustration of the generic structure of the prediction network illustrates how the architecture is adeptly designed to address the challenges of real-time state prediction.
 This representation highlights the strategic deployment of the \ac{LSTM} layer for storing and processing object-specific information, facilitating accurate and timely predictions of object states.
 
-\begin{figure}[h!]
+\begin{figure}[b!]
 	\centerline{\includegraphics[width=0.95\linewidth]{SPENT_network_arch.png}}
 	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.}}
 	\label{pic::SpentArch}
@@ -472,7 +472,7 @@ This creates a vector with 288 elements, whereby 18 elements each represent the 
             \ELSIF{\red{MANTa is used}}
                 \STATE \red{Jointly associate sensor objects ${Z}_{t,1:m}$ to confirmed tracks ${T^c}_{t,1:n}$ to receive ${A}_{t,1:m}$}
             \ENDIF
-        \STATE \red{Update associated tracks ${T^u}_{t,1:n}$}
+        \STATE \red{Update associated tracks ${T^u}_{t,1:n}$ using ${A}_{t,1:m}$}
         \STATE \red{Perform track confirmation and deletion}
         \RETURN \red{${T^u}_{t,1:n}$}
     \end{algorithmic}
@@ -484,7 +484,7 @@ This creates a vector with 288 elements, whereby 18 elements each represent the 
 The developed networks were modularly integrated into the Tracking-by-Detection framework, replacing classical algorithms.
 \red{On a desktop CPU system (Intel Core i7-XXXX, single-threaded execution), median inference times were measured in FP32 precision. SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks. SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
 
-\begin{figure}[h!]
+\begin{figure}[b!]
 	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
     \caption{\red{Comparison of the \ac{RMSE} for \ac{SPENT} and a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}.}}
     \label{fig::SpentRmseComparison}
@@ -519,7 +519,7 @@ For the association of sensor objects to existing tracks, we developed \ac{SANT}
 %     \label{tab::SANTMANTaAccuracy}
 % \end{table}
 
-\begin{figure}[h!]
+\begin{figure}[t]
 	\centerline{\includegraphics[width=0.87\linewidth]{data_association_results.pdf}}
     \caption{\red{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}}
     \label{fig::SANTMANTaAccuracy}
