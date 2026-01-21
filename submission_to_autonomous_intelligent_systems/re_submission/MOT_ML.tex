@@ -141,7 +141,7 @@
 
 \begin{abstract}
 
-We present a modular, production-ready approach that integrates compact \ac{NN} into a Kalman-filter-based \red{Multi-Object Tracking} (MOT) pipeline. We design three tiny task-specific networks to retain modularity, interpretability and real-time suitability for embedded Automotive Driver Assistance Systems:
+We present a modular, production-ready approach that integrates compact \ac{NN} into a Kalman-filter-based \red{Multi-Object Tracking} (MOT) pipeline. We design three tiny task-specific networks \red{{\cite{DL_TinyML.2019}}} to retain modularity, interpretability and real-time suitability for embedded Automotive Driver Assistance Systems:
 \begin{enumerate}[(i)]
 \item SPENT (Single-Prediction Network) — predicts per-track states and replaces heuristic motion models used by the \ac{KF}.
 \item  SANT (Single-Association Network) — assigns a single incoming sensor object to existing tracks, without relying on heuristic distance and association metrics.
@@ -190,7 +190,7 @@ Our primary contribution is the development, \red{individual evaluation} and joi
     \item MANTa (Multi-Association Network) which associates multiple incoming sensor objects to all currently tracked objects.
 \end{enumerate}
 
-These networks were specifically designed for real-time, embedded inference. Each of them has fewer than 50k trainable parameters. Fig. {\ref{pic::MotFramework}} provides an overview of our approach in which the association network can be implemented using either \ac{SANT} or \ac{MANTa}.
+These networks were specifically designed for real-time, embedded inference \red{{\cite{DL_TinyML.2019}}}. Each of them has fewer than 50k trainable parameters. Fig. {\ref{pic::MotFramework}} provides an overview of our approach in which the association network can be implemented using either \ac{SANT} or \ac{MANTa}.
 The input for the proposed prediction network (i) \red{is up to $m$ \acp{SO}} $Z_{t,1:m}$ at timestamp $t$.
 If new objects are detected by the sensors, these are stored in a $k$-dimensional state vector containing information such as object position $(x,y)$, yaw angle and object dimensions
 (length and width) (for $k=5$).
@@ -297,7 +297,7 @@ As noted by Reddy et al. {\cite{DL_padding.2019}}, padding introduces noise, but
 As depicted in Fig. \ref{pic::SpentArch}, the schematic illustration of the generic structure of the prediction network illustrates how the architecture is adeptly designed to address the challenges of real-time state prediction.
 This representation highlights the strategic deployment of the \ac{LSTM} layer for storing and processing object-specific information, facilitating accurate and timely predictions of object states.
 
-\begin{figure}[b!]
+\begin{figure}[ht!]
 	\centerline{\includegraphics[width=0.95\linewidth]{SPENT_network_arch.png}}
 	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.}}
 	\label{pic::SpentArch}
@@ -329,6 +329,16 @@ The factor of $\frac{1}{2}$ simplifies the gradient during backpropagation:
 \end{equation}
 \noindent
 \red{where $Z_{t,i}$ refers} to the $i$-th entry in the state vector at timestamp $t$.
+
+\paragraph{\red{overall training setup}}
+\red{Network Architecture - LSTM layers use tanh activation for cell and hidden state updates and sigmoid activation for gates. Fully connected layers follow standard dense layer configurations. Weights are initialized using Glorot (Xavier) initialization {\cite{DL_FC.2010}}, and biases are zero-initialized.
+Optimization - All networks are trained using the Adam optimizer with an initial learning rate of 0.001 and gradient decay factor 0.9.
+A piecewise learning rate schedule reduces the learning rate by a factor of 0.1 every 10 epochs.
+L2 regularization with weight decay 0.0001 is applied to prevent overfitting.
+Training Configuration - Networks are trained for a maximum of 30 epochs with a mini-batch size of 50. Validation is performed every 50 iterations with early stopping (patience = 5 epochs).
+The model with the lowest validation loss is selected as the final network.
+Sequence Handling - LSTM sequences are padded to the length of the longest sequence in each mini-batch.
+To minimize padding overhead and potential noise, training sequences are sorted by length prior to mini-batch formation, as this significantly reduces the amount of zero-padding required per batch.}
 
 \subsection{Single Association Network (SANT)}
 Our association network uses a data-driven approach to solve the NP-hard data association problem {\cite{DA_hungarian.1955,DA_JPDA.1993}}, which traditionally requires significant computational effort for optimal solutions {\cite{DA_hungarian.1955}}.
@@ -484,7 +494,7 @@ This creates a vector with 288 elements, whereby 18 elements each represent the 
 The developed networks were modularly integrated into the Tracking-by-Detection framework, replacing classical algorithms.
 \red{On a desktop CPU system without AI acceleration hardware (Intel Core i7-XXXX, single-threaded execution), median inference times were measured in FP32 precision. SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks. SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
 
-\begin{figure}[b!]
+\begin{figure}[t!]
 	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
     \caption{\red{Comparison of the \ac{RMSE} for \ac{SPENT} and a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}.}}
     \label{fig::SpentRmseComparison}
@@ -498,35 +508,14 @@ Our \ac{SPENT} model reduces the RMSE by more than half to 0.029 using the ident
 
 For the association of sensor objects to existing tracks, we developed \ac{SANT} to replace classical methods like \ac{GNN}. By substituting the distance metric and the Hungarian assignment procedure with a learned, data-driven assignment logic, \ac{SANT} achieves an accuracy of 95\% on a testing dataset with 391 samples (representing 5\% of the total dataset with 7827 association samples). This approach not only simplifies the assignment process but also allows for adaptability in diverse scenarios, where classical methods may lack flexibility.
 
-% \begin{table}[b]
-%     \centering
-%     \caption{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}
-%     \resizebox{0.48\textwidth}{!}{
-%     \begin{tabular}{|p{0.1\textwidth}|p{0.1\textwidth}|p{0.1\textwidth}|}
-%         \hline
-%         \textbf{--} & \multicolumn{2}{c|}{\textbf{Simultaneous tracks per timestamp}} \\
-%         \textbf{ } & \textbf{1 to 6} & \textbf{7 to 16} \\
-%         \hline
-%         \hline
-%         \textbf{Model} & \multicolumn{2}{c|}{\textbf{Association accuracy}} \\
-%         \hline
-%         \ac{SANT} & 95\% & 95\% \\
-%         \hline
-%         \ac{MANTa} & 95\% & 14\% \\
-%         \hline
-%     \end{tabular}
-%     }
-%     \label{tab::SANTMANTaAccuracy}
-% \end{table}
+Expanding on \ac{SANT}, \ac{MANTa} addresses the limitations of a single object to track assignment by enabling multi object assignments within each timestamp.
+This means \ac{MANTa} is trained to assign a list of \acp{SO} to a list of tracks in a single operational step on the same dataset as \ac{SANT} and also achieved an assignment accuracy of 95\% for the six most frequently occurring association sets, i.e., the sets with one to six tracks per timestamp. It performs much worse (14\%) for assignment scenarios with more tracks, which were less present in the training data. Accuracy results are summarized in Fig. \ref{fig::SANTMANTaAccuracy}.
 
-\begin{figure}[t]
+\begin{figure}[h!]
 	\centerline{\includegraphics[width=0.87\linewidth]{data_association_results.pdf}}
     \caption{\red{Data association results for the SANT and MANTa networks. MANTa's average accuracy is 80\%.}}
     \label{fig::SANTMANTaAccuracy}
 \end{figure}
-
-Expanding on \ac{SANT}, \ac{MANTa} addresses the limitations of a single object to track assignment by enabling multi object assignments within each timestamp.
-This means \ac{MANTa} is trained to assign a list of \acp{SO} to a list of tracks in a single operational step on the same dataset as \ac{SANT} and also achieved an assignment accuracy of 95\% for the six most frequently occurring association sets, i.e., the sets with one to six tracks per timestamp. It performs much worse (14\%) for assignment scenarios with more tracks, which were less present in the training data. Accuracy results are summarized in Fig. \ref{fig::SANTMANTaAccuracy}.
 
 In the context of the entire KITTI dataset, which includes both cars and vans objects,
 MANTa achieves an average association accuracy of 80\%.
