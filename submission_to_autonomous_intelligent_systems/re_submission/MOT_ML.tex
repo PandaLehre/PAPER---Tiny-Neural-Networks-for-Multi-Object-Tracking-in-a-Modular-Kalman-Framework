@@ -24,7 +24,7 @@
 
 %------ for comments
 \usepackage{color}
-\newcommand{\menz}[1]{ \noindent {\color{orange} [{\bf Markus:} {#1}]} }
+\newcommand{\menz}[1]{ \noindent {\color{green} [{\bf Markus:} {#1}]} }
 \newcommand{\ch}[1]{ \noindent {\color{blue} [{\bf Christian:} {#1}]} }
 \newcommand{\md}[1]{ \noindent {\color{green} [{\bf Matthias:} {#1}]} }
 \newcommand{\red}[1]{\textcolor{red}{#1}}
@@ -240,9 +240,9 @@ Similar to our methodologies, RNN-based approaches for online multi-target track
 Specifically, the work by Mertz et al. {\cite{DL_RNN_data_association.2019}} focuses on data association within a TbD framework.
 Their proposed DeepDA model, a Long Short-Term Memory (LSTM)-based Deep Data Association (DeepDA) Network, is designed to learn and execute the task of associating objects across frames.
 This model's ability to discern association patterns directly from data enables a robust and reliable tracking outcome, even in environments with significant disturbances.
-Mertz et al. employ a distance matrix, derived from the euclidean distance measure, as the input for the DeepDA network.
+Mertz et al. employ a distance matrix, derived from the Euclidean distance measure, as the input for the DeepDA network.
 This innovative approach effectively supersedes traditional association algorithms, such as the Hungarian Algorithm.
-It is inferred that the euclidean distance measure served as a foundation not only for generating the ground truth (GT) training data (i.e., distance matrices) but also for the subsequent evaluation process.
+It is inferred that the Euclidean distance measure served as a foundation not only for generating the ground truth (GT) training data (i.e., distance matrices) but also for the subsequent evaluation process.
 However, this is not explicitly stated.
 In our work, we want to enable the network to follow a completely data-driven association logic without forcing a concrete distance metric.
 
@@ -299,7 +299,7 @@ This representation highlights the strategic deployment of the \ac{LSTM} layer f
 
 \begin{figure}[ht!]
 	\centerline{\includegraphics[width=0.95\linewidth]{SPENT_network_arch.png}}
-	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.}}
+	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.} \menz{Sollte das hier nicht object\_width im unteren Teil der Grafik sein?}}
 	\label{pic::SpentArch}
 \end{figure}
 
@@ -492,7 +492,7 @@ This creates a vector with 288 elements, whereby 18 elements each represent the 
 
 \section{Experimental Evaluation}
 The developed networks were modularly integrated into the Tracking-by-Detection framework, replacing classical algorithms.
-\red{On a desktop CPU system without AI acceleration hardware (Intel Core i7-XXXX, single-threaded execution), median inference times were measured in FP32 precision. SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks. SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
+\red{On a desktop CPU system without AI acceleration hardware (Intel Core i7-XXXX, single-threaded execution \menz{Placeholder for CPU name}), median inference times were measured in FP32 precision. SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks. SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
 
 \begin{figure}[t!]
 	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
