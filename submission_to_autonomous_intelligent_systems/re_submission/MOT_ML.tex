@@ -301,7 +301,7 @@ This representation highlights the strategic deployment of the \ac{LSTM} layer f
 
 \begin{figure}[ht!]
 	\centerline{\includegraphics[width=0.95\linewidth]{SPENT_network_arch.png}}
-	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.} \menz{Sollte das hier nicht object\_width im unteren Teil der Grafik sein?}}
+	\caption{Schematic representation of the generic structure of \ac{SPENT}. \red{SPENT replaces the classical motion model of a Kalman filter by directly predicting the next states estimate $X_{t}$ from the current confirmed track states $T^c_{t}$. SPENT outputs the predicted state mean only, while uncertainty propagation (state covariance) and measurement updates remain within the classical Kalman filter framework. This design ensures drop-in compatibility with standard Kalman-based Tracking-by-Detection pipelines.}}
 	\label{pic::SpentArch}
 \end{figure}
 
@@ -405,7 +405,7 @@ With MANTa, the following association scenarios can be addressed:
 \end{itemize}
 
 \begin{figure*}
-	\includegraphics[width=\linewidth]{MANTa_data.png}
+	\includegraphics[width=0.95\linewidth]{MANTa_data.png}
 	\captionof{figure}{MANTa, data structure, shows the non-noisy \acp{SO} to enable a visual assignment and increase understanding of the association procedure.
 	Seven tracks are extracted from the KITTI data set for the given timestamp of sequence 20.
 	Eight sensor objects are generated in pseudo-random order.
@@ -492,19 +492,22 @@ This creates a vector with 288 elements, whereby 18 elements each represent the 
 
 \section{Experimental Evaluation}
 The developed networks were modularly integrated into the Tracking-by-Detection framework, replacing classical algorithms.
-\red{On a desktop CPU system without AI acceleration hardware (Intel Core i7-XXXX, single-threaded execution \menz{Placeholder for CPU name}), median inference times were measured in FP32 precision. SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks. SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
-
-\begin{figure}[t!]
-	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
-    \caption{\red{Comparison of the \ac{RMSE} for \ac{SPENT} and a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}.}}
-    \label{fig::SpentRmseComparison}
-\end{figure}
+\red{On a desktop CPU system without AI acceleration hardware (Intel Core i7-13850HX Intel64, single-threaded execution),
+median inference times were measured in FP32 precision.
+SPENT requires approximately 0.5 ms per track, resulting in 8.0 ms for 16 concurrent tracks.
+SANT requires approximately 1.0 ms per association for $n\leq16$ tracks, while MANTa performs a joint multi-object association in approximately 3.5 ms total. For a typical Tracking-by-Detection cycle with up to 16 tracks, this corresponds to an average processing time of approximately 0.2 ms per track when normalized over all tracks.}
 
 Our recurrent network updates its internal hidden states at each timestamp, capturing temporal dependencies and enabling accurate state predictions without external correction.
 This approach, well-suited for real-time applications presents a strong alternative to traditional methods.
 Using the KITTI dataset, focusing on vehicle tracks (cars and vans) divided into training, validation, and testing sets, we evaluated \ac{SPENT}'s performance.
 As first benchmark, we take a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}, which achieves a RMSE of 0.066 across 31 tracks (Fig. {\ref{fig::SpentRmseComparison}}) on the testing set.
 Our \ac{SPENT} model reduces the RMSE by more than half to 0.029 using the identical data sets. For positional predictions the average deviations \red{are} 42 centimeters on the x-axis and 23 centimeters on the y-axis.
+
+\begin{figure}[h!]
+	\centerline{\includegraphics[width=0.87\linewidth]{spent_rmse.pdf}}
+    \caption{\red{Comparison of the \ac{RMSE} for \ac{SPENT} and a \ac{KF} framework implemented by the Daimler Truck Research Group following {\cite{KF_BoundingBD.2023,KF_Bewley.2016}}.}}
+    \label{fig::SpentRmseComparison}
+\end{figure}
 
 For the association of sensor objects to existing tracks, we developed \ac{SANT} to replace classical methods like \ac{GNN}. By substituting the distance metric and the Hungarian assignment procedure with a learned, data-driven assignment logic, \ac{SANT} achieves an accuracy of 95\% on a testing dataset with 391 samples (representing 5\% of the total dataset with 7827 association samples). This approach not only simplifies the assignment process but also allows for adaptability in diverse scenarios, where classical methods may lack flexibility.
 \red{When positioning our approach relative to detection‑centric or transformer‑based trackers, it is worth noting that methods such as Tracktor, TransTrack and TrackFormer pursue alternative design points (detector‑based heuristics or end‑to‑end temporal modeling) which trade modularity for different operational benefits {\cite{Bergmann2019Tracktor,Sun2020TransTrack,Meinhardt2021TrackFormer}}.}
