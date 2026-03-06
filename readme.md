@@ -1,5 +1,5 @@
 
-# Data-Driven Object Tracking: Integrating Modular Neural Networks into a Kalman Framework
+# Tiny Neural Networks for Multi-Object Tracking in a Modular Kalman Framework
 
 Authors: Christian Alexander Holz, Christian Bader, Markus Enzweiler, Matthias Drüppel
 
