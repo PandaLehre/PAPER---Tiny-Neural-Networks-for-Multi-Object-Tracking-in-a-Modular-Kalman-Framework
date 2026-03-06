@@ -13,11 +13,8 @@ usfull bash commands to compile the paper:
 pdflatex MOT_ML.tex; bibtex MOT_ML; pdflatex MOT_ML.tex; pdflatex MOT_ML.tex
 ```
 
-## Paper Preview
+## Figures
 
-![PDF Preview](preview.png)
-
-<!-- ## Figures
 ### Schematic representation of the two integrated networks in a tracking-by-detection (TbD) framework.
 <img src="figs/MOT_Framework_Integration_SPENT_SANT.png" alt="Schmatic representation of the two integrated networks in a tracking-by-detection (TbD) framework." width="50%">
 
